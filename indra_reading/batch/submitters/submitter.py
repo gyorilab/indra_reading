@@ -207,7 +207,9 @@ class Submitter:
                 logger.exception(e)
                 if kill_on_exception:
                     logger.info("Killing all my jobs...")
-                    kill_all(monitor.queue_name, kill_list=self.job_list,
+                    kill_all(monitor.queue_name,
+                             kill_list=[j for l in self.job_lists.values()
+                                        for j in l],
                              reason='Exception in monitor, jobs aborted.')
                 raise e
             return wait_res
