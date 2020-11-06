@@ -13,6 +13,11 @@ from indra_reading.batch.monitor import BatchMonitor
 logger = logging.getLogger('batch_submitter_core')
 
 
+JOB_STATES = {'pre': ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING'],
+              'running': ['RUNNING'], 'done': ['SUCCEEDED'],
+              'failed': ['FAILED']}
+
+
 class Submitter:
     """This is the core architecture for managing a suite of jobs on AWS Batch.
 
@@ -77,7 +82,28 @@ class Submitter:
             self.monitors[queue_name] = \
                 BatchMonitor(queue_name, self.job_lists[queue_name],
                              self.job_base, self.s3_base)
+        self.max_jobs = None
         return
+
+    def get_job_counts_by_status(self):
+        """Get a dictionary of jobs based on their status."""
+        jobs_in_state = dict.fromkeys(JOB_STATES.keys(), 0)
+        for q_name in self._iter_over_select_queues():
+            for job_state, aws_states in JOB_STATES.items():
+                for stat in aws_states:
+                    jobs_in_state[job_state] \
+                        += len(self.monitors[q_name].get_jobs_by_status(stat))
+        return jobs_in_state
+
+    def set_max_jobs(self, num_jobs):
+        """Set the maximum number of jobs submitted at one time.
+
+        This only has an effect when jobs are being submitted incrementally, and
+        it only affects when new jobs are submitted. Thus, if this is set after
+        several jobs are running it will only prevent new jobs being submitted
+        until jobs have finished such that only `num_jobs` - 1 remain.
+        """
+        self.max_jobs = num_jobs
 
     def _iter_over_select_queues(self):
         raise NotImplementedError
@@ -153,6 +179,21 @@ class Submitter:
 
                 cmd_iter = self._iter_job_queue_def_commands(*job_args)
                 for job_name, cmd, job_def, job_queue in cmd_iter:
+                    # Wait for there to be enough jobs to submit. Wait
+                    # increases exponentially.
+                    if self.max_jobs is not None:
+                        job_counts = self.get_job_counts_by_status()
+                        jobs_on_tab = job_counts['pre'] + job_counts['running']
+                        wait = 10
+                        n_sleeps = 0
+                        while jobs_on_tab > self.max_jobs:
+                            sleep_time = wait * (2**n_sleeps)
+                            logger.info(f"Waiting {sleep_time} seconds for "
+                                        f"more {jobs_on_tab - self.max_jobs} "
+                                        f"jobs to be finish...")
+                            sleep(sleep_time)
+
+                    # Build the command.
                     command_list = get_batch_command(cmd, purpose=self._purpose,
                                                      project=self.project_name)
                     logger.info('Command list: %s' % str(command_list))
