@@ -182,16 +182,18 @@ class Submitter:
                     # Wait for there to be enough jobs to submit. Wait
                     # increases exponentially.
                     if self.max_jobs is not None:
-                        job_counts = self.get_job_counts_by_status()
-                        jobs_on_tab = job_counts['pre'] + job_counts['running']
+                        counts = self.get_job_counts_by_status()
+                        not_done = counts['pre'] + counts['running']
                         wait = 10
                         n_sleeps = 0
-                        while jobs_on_tab > self.max_jobs:
+                        while not_done > self.max_jobs:
                             sleep_time = wait * (2**n_sleeps)
-                            logger.info(f"Waiting {sleep_time} seconds for "
-                                        f"more {jobs_on_tab - self.max_jobs} "
-                                        f"jobs to be finish...")
+                            logger.info(f"Waiting {sleep_time} seconds: max "
+                                        f"jobs is {self.max_jobs} and "
+                                        f"{not_done} are running.for ")
                             sleep(sleep_time)
+                            counts = self.get_job_counts_by_status()
+                            not_done = counts['pre'] + counts['running']
 
                     # Build the command.
                     command_list = get_batch_command(cmd, purpose=self._purpose,
