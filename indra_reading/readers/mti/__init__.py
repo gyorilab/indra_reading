@@ -22,8 +22,7 @@ def get_config_extended(key):
 try:
     # We get MTI configuration parameters first
     mti_email = get_config_extended('MTI_EMAIL')
-    mti_username = get_config_extended('MTI_USERNAME')
-    mti_password = get_config_extended('MTI_PASSWORD')
+    mti_api_key = get_config_extended('MTI_API_KEY')
     mti_jars_path = get_config_extended('MTI_JARS_PATH')
 
     # We next need to take care of setting the CLASSPATH and then importing
@@ -141,7 +140,7 @@ class MTIReader(Reader):
         batch = autoclass('GenericBatchNew')()
         logger.info('Calling MTI batch processor.')
         result = batch.processor(["--email", mti_email, abs_file],
-                                 mti_username, mti_password)
+                                 mti_api_key)
         # If there is an error, MTI just returns a string
         # starting with ERROR
         if result.startswith('ERROR'):
