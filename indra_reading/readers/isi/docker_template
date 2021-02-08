@@ -4,9 +4,17 @@ ENV DIRPATH /root
 ENV PYTHONPATH "${DIRPATH}/indra_db:${PYTHONPATH}"
 WORKDIR $DIRPATH
 
+RUN sed -i 's/stretch/buster/g' /etc/apt/sources.list
+RUN apt-get update -y && \
+    apt-get upgrade -y
+RUN apt-get install -y python3 && \
+    echo "PYTHON 3 VERSION:" `python3 --version` && \
+    alias pip3="python3 -m pip"
+
 {% indra_install %}
 
 RUN pip3 install unidecode
+ENV CPATH /usr/include:/usr/include/x86_64-linux-gnu/
 
 {% indra_db_install %}
 
