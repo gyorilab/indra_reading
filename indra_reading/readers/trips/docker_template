@@ -1,4 +1,4 @@
-FROM 292075781285.dkr.ecr.us-east-1.amazonaws.com/drum:latest
+FROM 292075781285.dkr.ecr.us-east-1.amazonaws.com/drum:new
 
 ENV DIRPATH /root
 ENV PYTHONPATH "${DIRPATH}/indra_db:${DIRPATH}/indra:${PYTHONPATH}"
