@@ -32,7 +32,9 @@ docker images happens on AWS CodeBuild, so sufficient credentials will be requir
 to run the builds.
 
 The arguments are inferred from the dockerfile's `ARG` lines, converted to lowercase
-and supplied using the `--argument` convention.
+and supplied using the `--argument` convention. Defaults are set on CodeBuild. The
+dockerfiles and buildspecs are pushed to S3 in a zip file (one for each reader), from
+which they are read by CodeBuild.
 
 Adding a New Reader
 -------------------
