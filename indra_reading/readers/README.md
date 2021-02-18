@@ -27,9 +27,12 @@ using the `update_dockers.py` function:
 ```bash
 python update_dockers.py --help
 ```
-Options vary depending on the reader being updated. The actually building of the
+Options vary depending on the reader being updated. The actual building of the
 docker images happens on AWS CodeBuild, so sufficient credentials will be required
 to run the builds.
+
+The arguments are inferred from the dockerfile's `ARG` lines, converted to lowercase
+and supplied using the `--argument` convention.
 
 Adding a New Reader
 -------------------
