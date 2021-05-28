@@ -156,10 +156,10 @@ class BatchMonitor(object):
             if found_a_job or not wait_for_first_job:
                 if self._submitter_submitting:
                     # Wait for the submitter to be done submitting.
-                    logger.info("ReadingSubmitter is submitting...")
+                    logger.info("Submitter is submitting...")
                 elif self.job_id_list:
                     if (len(failed) + len(done)) == len(self.job_id_list):
-                        logger.info("ReadingSubmitter status is : %s"
+                        logger.info("Submitter status is : %s"
                                     % self._submitter_submitting)
                         logger.info("Total failed and done equals number of "
                                     "original tracked jobs. Ending.")
