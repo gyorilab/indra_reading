@@ -28,18 +28,28 @@ class ReachReader(Reader):
     def __init__(self, *args, **kwargs):
         self.exec_path, self.version = self._check_reach_env()
         super(ReachReader, self).__init__(*args, **kwargs)
-        conf_fmt_fname = path.join(path.dirname(__file__),
-                                   'reach_conf_fmt.txt')
+        # This is the main application configuration file
+        conf_fmt_fname = path.join(path.dirname(__file__), 'reach_conf_fmt.txt')
+        # This is the KB configuration file which has to be prepended
+        # to make a full working configuration file
+        kb_conf_fname = path.join(path.dirname(__file__), 'kb_conf.txt')
+        # Read in the KB config
+        with open(kb_conf_fname, 'r') as fh:
+            kb_conf = fh.read()
+
         self.conf_file_path = path.join(self.tmp_dir, 'indra.conf')
         with open(conf_fmt_fname, 'r') as fmt_file:
             fmt = fmt_file.read()
             log_level = 'INFO'
             # log_level = 'DEBUG' if logger.level == logging.DEBUG else 'INFO'
+            # Format the main config to our specific setting
+            conf_formatted = fmt.format(tmp_dir=self.tmp_dir,
+                                        num_cores=self.n_proc,
+                                        loglevel=log_level)
+            # Now prepend the KB config and write out to a file
+            full_conf = kb_conf + conf_formatted
             with open(self.conf_file_path, 'w') as f:
-                f.write(
-                    fmt.format(tmp_dir=self.tmp_dir, num_cores=self.n_proc,
-                               loglevel=log_level)
-                )
+                f.write(full_conf)
         self.output_dir = get_dir(self.tmp_dir, 'output')
         self.num_input = 0
         return
