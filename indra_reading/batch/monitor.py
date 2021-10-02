@@ -347,7 +347,7 @@ def get_ecs_cluster_for_queue(queue_name, batch_client=None):
     return ecs_cluster_name
 
 
-def tag_instances_on_cluster(cluster_name, project='cwc'):
+def tag_instances_on_cluster(cluster_name, project='aske'):
     """Adds project tag to untagged instances in a given cluster.
 
     Parameters
