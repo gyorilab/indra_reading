@@ -247,8 +247,14 @@ class BatchMonitor(object):
 
     def get_jobs_by_status(self, status):
         res = self.batch_client.list_jobs(jobQueue=self.queue_name,
-                                          jobStatus=status, maxResults=10000)
+                                          jobStatus=status)
         jobs = res['jobSummaryList']
+        while 'nextToken' in res:
+            next_token = res['nextToken']
+            res = self.batch_client.list_jobs(jobQueue=self.queue_name,
+                                              jobStatus=status,
+                                              nextToken=next_token)
+            jobs += res['jobSummaryList']
         if self.job_base:
             jobs = [job for job in jobs if
                     job['jobName'].startswith(self.job_base)]
