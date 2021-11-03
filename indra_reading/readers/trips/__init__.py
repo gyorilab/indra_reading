@@ -29,6 +29,17 @@ def find_free_ports():
 
     The order is randomized to minimize the chances of race-condition overlaps.
     """
+    # First try to determine port by using environment variables
+    job_group_id = os.environ.get('JOB_GROUP_ID')
+    job_id = os.environ.get('JOB_ID')
+    if job_group_id and job_id:
+        logger.info("Using JOB_GROUP_ID and JOB_ID to determine port.")
+        port = 6200 + 1000 * int(job_group_id) + int(job_id)
+        logger.info("Using port %d." % port)
+        yield port
+    else:
+        logger.info("No environment variables for determining the port.")
+    logger.info("Using random port.")
     ports = list(range(1, 65536))
     random.shuffle(ports)
     for port in ports:
