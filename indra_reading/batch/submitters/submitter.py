@@ -205,11 +205,11 @@ class Submitter:
                     updated_environment_vars = environment_vars
                     updated_environment_vars.append({
                         'name': 'JOB_GROUP_ID',
-                        'value': ix1
+                        'value': str(ix1)
                     })
                     updated_environment_vars.append({
                         'name': 'JOB_ID',
-                        'value': ix2
+                        'value': str(ix2)
                     })
                     # Submit the job.
                     kwargs = {}
