@@ -1,3 +1,4 @@
+import boto3
 import os
 import re
 import socket
@@ -71,9 +72,12 @@ def _start_trips():
         service_host = 'http://localhost:%d/cgi/' % port
 
         # Wait for the service to be ready
+        log_dir = None
         for log_line in _tail_trips(p):
             if 'can\'t bind to port' in log_line:
                 port_failure = True
+            if 'Creating log directory' in log_line:
+                log_dir = ''.join('/', log_line.split('/', maxsplit=1)[1])
             if log_line == 'Ready':
                 # TRIPS is ready to read and we can continue on.
                 break
@@ -83,6 +87,15 @@ def _start_trips():
                 # If the failure due to wrong port, try another port.
                 continue
             else:
+                if log_dir:
+                    # Save the log file to S3
+                    s3 = boto3.client('s3')
+                    datestamp = log_dir.split('/')[2]
+                    for fname in os.listdir(log_dir):
+                        fpath = os.path.join(log_dir, fname)
+                        key = 'indra-db/trips_logs/%s/%s' % (datestamp, fname)
+                        logger.info("Uploading %s to S3." % fpath)
+                        s3.upload_file(fpath, Bucket='bigmech', Key=key)
                 # Otherwise give up.
                 raise TripsStartupError("Trips failed to start up.")
 
