@@ -93,7 +93,8 @@ def _start_trips():
                     datestamp = log_dir.split('/')[2]
                     for fname in os.listdir(log_dir):
                         fpath = os.path.join(log_dir, fname)
-                        key = 'indra-db/trips_logs/%s/%s' % (datestamp, fname)
+                        key = 'indra-db/trips_logs/%s_%s/%s' % (
+                            datestamp, port, fname)
                         logger.info("Uploading %s to S3." % fpath)
                         s3.upload_file(fpath, Bucket='bigmech', Key=key)
                 # Otherwise give up.
