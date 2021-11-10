@@ -77,7 +77,7 @@ def _start_trips():
             if 'can\'t bind to port' in log_line:
                 port_failure = True
             if 'Creating log directory' in log_line:
-                log_dir = ''.join('/', log_line.split('/', maxsplit=1)[1])
+                log_dir = ''.join(['/', log_line.split('/', maxsplit=1)[1]])
             if log_line == 'Ready':
                 # TRIPS is ready to read and we can continue on.
                 break
