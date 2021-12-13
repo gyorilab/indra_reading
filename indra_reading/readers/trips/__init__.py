@@ -63,13 +63,15 @@ def _start_trips():
                         "within the docker on port %d." % port)
             p = sp.Popen([expanduser('~/startup_trips.sh'), str(port)],
                          stdout=sp.PIPE, stderr=sp.STDOUT)
+            service_port = 80
         else:
             logger.info("Starting up a TRIPS service using drum docker.")
             p = sp.Popen(['docker', 'run', '-it', '-p', '%d:80' % port,
                           '--entrypoint', '/sw/drum/bin/startup.sh',
                           DRUM_DOCKER],
                          stdout=sp.PIPE, stderr=sp.STDOUT)
-        service_host = 'http://localhost:%d/cgi/' % port
+            service_port = port
+        service_host = 'http://localhost:%d/cgi/' % service_port
 
         # Wait for the service to be ready
         log_dir = None
