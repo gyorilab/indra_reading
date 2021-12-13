@@ -20,7 +20,6 @@ from indra.sources.trips import client, process_xml
 
 logger = logging.getLogger(__name__)
 
-startup_path = '/sw/drum/bin/startup.sh'
 service_endpoint = 'drum'
 DRUM_DOCKER = '292075781285.dkr.ecr.us-east-1.amazonaws.com/drum'
 
