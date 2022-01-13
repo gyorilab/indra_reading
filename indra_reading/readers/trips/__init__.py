@@ -1,3 +1,4 @@
+import boto3
 import os
 import re
 import socket
@@ -19,7 +20,6 @@ from indra.sources.trips import client, process_xml
 
 logger = logging.getLogger(__name__)
 
-startup_path = '/sw/drum/bin/startup.sh'
 service_endpoint = 'drum'
 DRUM_DOCKER = '292075781285.dkr.ecr.us-east-1.amazonaws.com/drum'
 
@@ -29,6 +29,17 @@ def find_free_ports():
 
     The order is randomized to minimize the chances of race-condition overlaps.
     """
+    # First try to determine port by using environment variables
+    job_group_id = os.environ.get('JOB_GROUP_ID')
+    job_id = os.environ.get('JOB_ID')
+    if job_group_id and job_id:
+        logger.info("Using JOB_GROUP_ID and JOB_ID to determine port.")
+        port = 6200 + 1000 * int(job_group_id) + int(job_id)
+        logger.info("Using port %d." % port)
+        yield port
+    else:
+        logger.info("No environment variables for determining the port.")
+    logger.info("Using random port.")
     ports = list(range(1, 65536))
     random.shuffle(ports)
     for port in ports:
@@ -51,18 +62,23 @@ def _start_trips():
                         "within the docker on port %d." % port)
             p = sp.Popen([expanduser('~/startup_trips.sh'), str(port)],
                          stdout=sp.PIPE, stderr=sp.STDOUT)
+            service_port = 80
         else:
             logger.info("Starting up a TRIPS service using drum docker.")
             p = sp.Popen(['docker', 'run', '-it', '-p', '%d:80' % port,
                           '--entrypoint', '/sw/drum/bin/startup.sh',
                           DRUM_DOCKER],
                          stdout=sp.PIPE, stderr=sp.STDOUT)
-        service_host = 'http://localhost:%d/cgi/' % port
+            service_port = port
+        service_host = 'http://localhost:%d/cgi/' % service_port
 
         # Wait for the service to be ready
+        log_dir = None
         for log_line in _tail_trips(p):
-            if 'can\'t bind to port' in 'log_line':
+            if 'can\'t bind to port' in log_line:
                 port_failure = True
+            if 'Creating log directory' in log_line:
+                log_dir = ''.join(['/', log_line.split('/', maxsplit=1)[1]])
             if log_line == 'Ready':
                 # TRIPS is ready to read and we can continue on.
                 break
@@ -72,6 +88,16 @@ def _start_trips():
                 # If the failure due to wrong port, try another port.
                 continue
             else:
+                if log_dir:
+                    # Save the log file to S3
+                    s3 = boto3.client('s3')
+                    datestamp = log_dir.split('/')[2]
+                    for fname in os.listdir(log_dir):
+                        fpath = os.path.join(log_dir, fname)
+                        key = 'indra-db/trips_logs/%s_%s/%s' % (
+                            datestamp, port, fname)
+                        logger.info("Uploading %s to S3." % fpath)
+                        s3.upload_file(fpath, Bucket='bigmech', Key=key)
                 # Otherwise give up.
                 raise TripsStartupError("Trips failed to start up.")
 

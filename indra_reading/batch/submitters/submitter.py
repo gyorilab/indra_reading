@@ -2,6 +2,7 @@ import boto3
 import logging
 from time import sleep
 from threading import Thread
+from copy import copy
 
 from indra.util.aws import get_batch_command, kill_all
 
@@ -171,14 +172,14 @@ class Submitter:
 
         self.set_monitors_submitting(True)
         try:
-            for job_args in self._iter_job_args(*args):
+            for ix1, job_args in enumerate(self._iter_job_args(*args)):
                 # Check for a stop signal
                 if not self.running:
                     logger.info("Running was switched off, discontinuing...")
                     break
 
                 cmd_iter = self._iter_job_queue_def_commands(*job_args)
-                for job_name, cmd, job_def, job_queue in cmd_iter:
+                for ix2, (job_name, cmd, job_def, job_queue) in enumerate(cmd_iter):
                     # Wait for there to be enough jobs to submit. Wait
                     # increases exponentially.
                     if self.max_jobs is not None:
@@ -200,6 +201,16 @@ class Submitter:
                                                      project=self.project_name)
                     logger.info('Command list: %s' % str(command_list))
 
+                    # Update the environment variables.
+                    updated_environment_vars = environment_vars
+                    updated_environment_vars.append({
+                        'name': 'JOB_GROUP_ID',
+                        'value': str(ix1)
+                    })
+                    updated_environment_vars.append({
+                        'name': 'JOB_ID',
+                        'value': str(ix2)
+                    })
                     # Submit the job.
                     kwargs = {}
                     if self.job_timeout_override is not None:
@@ -210,7 +221,7 @@ class Submitter:
                         jobQueue=job_queue,
                         jobDefinition=job_def,
                         containerOverrides={
-                            'environment': environment_vars,
+                            'environment': updated_environment_vars,
                             'command': command_list},
                         retryStrategy={'attempts': num_tries},
                         **kwargs
