@@ -92,4 +92,7 @@ class EidosReader(Reader):
 
     @staticmethod
     def parse_results(content):
-        return eidos.process_json_bio(content)
+        from indra.tools.assemble_corpus import filter_grounded_only
+        ep = eidos.process_json_bio(content)
+        ep.statements = filter_grounded_only(ep.statements)
+        return ep

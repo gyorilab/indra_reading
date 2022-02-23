@@ -6,6 +6,7 @@ from io import BytesIO
 from os import path, remove
 from multiprocessing import Pool
 
+from indra.statements import Complex
 from indra_reading.readers.core import Reader, ReadingError
 from indra_reading.readers.content import Content
 from indra_reading.readers.util import get_time_stamp
@@ -211,4 +212,13 @@ class SparserReader(Reader):
         processor = sparser.process_json_dict(content)
         if processor is not None:
             processor.set_statements_pmid(None)
+            processor.statements = filter_large_complexes(processor.statements)
         return processor
+
+
+def filter_large_complexes(stmts):
+    def is_large_complex(stmt):
+        if isinstance(stmt, Complex) and len(stmt.members) > 2:
+            return True
+        return False
+    return [stmt for stmt in stmts if not is_large_complex(stmt)]
