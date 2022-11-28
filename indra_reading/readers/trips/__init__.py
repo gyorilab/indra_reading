@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 service_endpoint = 'drum'
 DRUM_DOCKER = '292075781285.dkr.ecr.us-east-1.amazonaws.com/drum'
+PORT_MAX = 65536  # 2**16
 
 
 def find_free_ports():
@@ -34,13 +35,17 @@ def find_free_ports():
     job_id = os.environ.get('JOB_ID')
     if job_group_id is not None and job_id is not None:
         logger.info("Using JOB_GROUP_ID and JOB_ID to determine port.")
-        port = 6200 + 1000 * int(job_group_id) + int(job_id)
-        logger.info("Using port %d." % port)
+        port = 6200 + (1000 * int(job_group_id) + int(job_id)) % PORT_MAX
+        logger.info("Trying port %d." % port)
         yield port
+        logger.info("Trying ports between %d and %d" % (port+1, PORT_MAX))
+        for p in range(port+1, PORT_MAX):
+            yield p
+
     else:
         logger.info("No environment variables for determining the port.")
     logger.info("Using random port.")
-    ports = list(range(1, 65536))
+    ports = list(range(1, PORT_MAX))
     random.shuffle(ports)
     for port in ports:
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sok:
@@ -101,7 +106,7 @@ def _start_trips():
                 # Otherwise give up.
                 raise TripsStartupError("Trips failed to start up.")
 
-        # The above for-loop existed without going to else, indicating
+        # The above for-loop exited without going to else, indicating
         # successful startup.
         break
     else:
