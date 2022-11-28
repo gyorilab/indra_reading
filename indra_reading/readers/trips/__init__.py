@@ -42,8 +42,13 @@ def find_free_ports():
             6200 + (1000 * int(job_group_id) + int(job_id)) % (PORT_MAX - 6200)
         logger.info("Trying port %d." % port)
         yield port
-        logger.info("Trying ports between %d and %d" % (port+1, PORT_MAX))
-        for p in range(port+1, PORT_MAX):
+
+        if port + 25 > PORT_MAX:
+            pstart, pstop, pstep = port-1, 6199, -1
+        else:
+            pstart, pstop, pstep = port + 1, PORT_MAX, 1
+        logger.info("Trying ports between %d and %d" % (pstart, pstop))
+        for p in range(pstart, pstop, pstep):
             yield p
 
     else:
