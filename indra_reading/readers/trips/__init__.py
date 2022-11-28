@@ -38,7 +38,8 @@ def find_free_ports():
     if job_group_id is not None and job_id is not None:
         logger.info("Using JOB_GROUP_ID (%s) and JOB_ID (%s) to determine "
                     "port." % (job_group_id, job_id))
-        port = 6200 + (1000 * int(job_group_id) + int(job_id)) % PORT_MAX
+        port = \
+            6200 + (1000 * int(job_group_id) + int(job_id)) % (PORT_MAX - 6200)
         logger.info("Trying port %d." % port)
         yield port
         logger.info("Trying ports between %d and %d" % (port+1, PORT_MAX))
