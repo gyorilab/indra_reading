@@ -28,13 +28,16 @@ PORT_MAX = 65536  # 2**16
 def find_free_ports():
     """Find ports that are unused.
 
-    The order is randomized to minimize the chances of race-condition overlaps.
+    The port number is determined from the environment variables JOB_ID and
+    JOB_GROUP_ID. If they are not provided a port is randomly assigned in the
+    range 1 <= port < 2**16.
     """
     # First try to determine port by using environment variables
     job_group_id = os.environ.get('JOB_GROUP_ID')
     job_id = os.environ.get('JOB_ID')
     if job_group_id is not None and job_id is not None:
-        logger.info("Using JOB_GROUP_ID and JOB_ID to determine port.")
+        logger.info("Using JOB_GROUP_ID (%s) and JOB_ID (%s) to determine "
+                    "port." % (job_group_id, job_id))
         port = 6200 + (1000 * int(job_group_id) + int(job_id)) % PORT_MAX
         logger.info("Trying port %d." % port)
         yield port
