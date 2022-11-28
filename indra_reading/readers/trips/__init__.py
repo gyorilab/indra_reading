@@ -32,7 +32,7 @@ def find_free_ports():
     # First try to determine port by using environment variables
     job_group_id = os.environ.get('JOB_GROUP_ID')
     job_id = os.environ.get('JOB_ID')
-    if job_group_id and job_id:
+    if job_group_id is not None and job_id is not None:
         logger.info("Using JOB_GROUP_ID and JOB_ID to determine port.")
         port = 6200 + 1000 * int(job_group_id) + int(job_id)
         logger.info("Using port %d." % port)
