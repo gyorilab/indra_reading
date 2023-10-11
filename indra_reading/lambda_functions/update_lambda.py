@@ -29,7 +29,7 @@ def upload_function(fun_file: str, fun_name: str):
     # structure:
     # <lambda_fun_name>/<lambda_fun_file>
     with ZipFile(HERE.joinpath("lambda.zip"), "w") as zf:
-        zf.write(filename=fun_path, arcname=f"{fun_name}/{fun_file}")
+        zf.write(filename=fun_path, arcname=f"{fun_name}/{fun_path.name}")
 
     # Upload the zip file to AWS Lambda
     with open(HERE.joinpath("lambda.zip"), "rb") as zf:
