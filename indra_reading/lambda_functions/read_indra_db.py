@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         # Most recent job is first in list
         status = response["jobSummaryList"][0]["status"]
         if status not in ["SUCCEEDED", "FAILED"]:
-            print("Previous job is still running, exiting...")
+            print("Previous job is not finished, exiting...")
             return "DONE"
 
     print("Previous job is done, starting new job...")
