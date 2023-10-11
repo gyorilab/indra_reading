@@ -13,10 +13,11 @@ PURPOSE = "monitor_reading"
 
 
 def lambda_handler(event, context):
-    batch = boto3.client("batch")
     print("Getting job status from previous run...")
-    response = batch.list_jobs(
-        jobQueue=QUEUE_NAME, filters=[{"name": "JOB_NAME", "values": ["monitor*"]}]
+    response = BATCH.list_jobs(
+        jobQueue=QUEUE_NAME, filters=[
+            {"name": "JOB_NAME", "values": ["monitor_db_reading_*"]}
+        ]
     )
     if response["jobSummaryList"]:
         # Most recent job is first in list
