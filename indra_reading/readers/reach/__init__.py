@@ -114,7 +114,7 @@ class ReachReader(Reader):
             reach_version = environ.get('REACH_VERSION', None)
         if reach_version is None:
             logger.debug('REACH version not set in REACH_VERSION')
-            m = re.match('reach-(.*?)\.jar', path.basename(path_to_reach))
+            m = re.match(r'reach-(.*?)\.jar', path.basename(path_to_reach))
             reach_version = re.sub('-SNAP.*?$', '', m.groups()[0])
 
         logger.debug('Using REACH version: %s' % reach_version)

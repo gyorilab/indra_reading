@@ -181,7 +181,7 @@ class TripsReader(Reader):
             # - remove special greek letters
             # - remove all special unicode, replace with ascii
             raw_text = content.get_text()
-            raw_text = re.sub('\s+', ' ', raw_text)
+            raw_text = re.sub(r'\s+', ' ', raw_text)
             for greek_letter, spelled_letter in greek_alphabet.items():
                 raw_text = raw_text.replace(greek_letter, spelled_letter)
             text = unidecode(raw_text)
