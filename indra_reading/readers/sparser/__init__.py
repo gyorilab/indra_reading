@@ -170,7 +170,7 @@ class SparserReader(Reader):
                 pool = None
                 try:
                     pool = Pool(self.n_proc)
-                    if n_per_proc is not 1:
+                    if n_per_proc != 1:
                         batches = [self.file_list[n*n_per_proc:(n+1)*n_per_proc]
                                    for n in range(L//n_per_proc + 1)]
                         out_lists_and_buffs = pool.map(self.read_some,
