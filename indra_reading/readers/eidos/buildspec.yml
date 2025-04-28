@@ -4,13 +4,13 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR and getting Eidos JAR...
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-      - aws s3 cp s3://bigmech/travis/eidos-assembly-0.2.3-SNAPSHOT.jar .
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+      - aws s3 cp s3://bigmech/travis/eidos-assembly-0.2.3-SNAPSHOT.jar indra_reading/readers/eidos/
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker build --build-arg AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID -t $IMAGE_REPO_NAME:$IMAGE_TAG indra_reading/readers/eidos
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
   post_build:
     commands:
